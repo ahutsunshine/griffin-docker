@@ -1,11 +1,12 @@
 #!/bin/bash
 
 $HADOOP_HOME/etc/hadoop/hadoop-env.sh
-rm /tmp/*.pid
+rm /apache/pids/*
 
 cd $HADOOP_HOME/share/hadoop/common ; for cp in ${ACP//,/ }; do  echo == $cp; curl -LO $cp ; done; cd -
 
 find /var/lib/mysql -type f -exec touch {} \; && service mysql start
+/etc/init.d/postgresql start
 
 sed s/HOSTNAME/$HOSTNAME/ $HADOOP_HOME/etc/hadoop/core-site.xml.template > $HADOOP_HOME/etc/hadoop/core-site.xml
 sed s/HOSTNAME/$HOSTNAME/ $HADOOP_HOME/etc/hadoop/yarn-site.xml.template > $HADOOP_HOME/etc/hadoop/yarn-site.xml
@@ -19,8 +20,8 @@ start-dfs.sh
 start-yarn.sh
 mr-jobhistory-daemon.sh start historyserver
 
-
-$HADOOP_HOME/bin/hdfs dfsadmin -safemode wait
+sleep 5
+$HADOOP_HOME/bin/hdfs dfsadmin -safemode leave
 
 
 hadoop fs -mkdir -p /home/spark_conf
@@ -46,6 +47,7 @@ nohup hive --service metastore > metastore.log &
 nohup livy-server > livy.log &
 
 #data prepare
+sleep 5
 cd /root/data
 nohup ./gen-hive-data.sh > hive-data.log &
 cd /root
